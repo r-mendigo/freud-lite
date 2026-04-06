@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>Freud Lite • A Companion</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-1: #06281f;
+        --bg-2: #041914;
+        --panel: rgba(0, 0, 0, 0.75);
+        --panel-2: rgba(0, 0, 0, 0.35);
+        --input-bg: #0b3d2e;
+        --user: #1fa97a;
+        --freud: #0f2f26;
+        --text: #e8fff6;
+        --muted: #9fe3c5;
+        --border: #d4af37;
+        --code-bg: #081c16;
+        --code-border: rgba(212, 175, 55, 0.28);
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+
+      body {
+        font-family: system-ui, sans-serif;
+        background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+        color: var(--text);
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      header {
+        background: var(--panel);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 3px solid var(--border);
+        flex: 0 0 auto;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .header-left > div {
+        min-width: 0;
+      }
+
+      .header-left h1,
+      .header-left p {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--border);
+        flex: 0 0 52px;
+        box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+      }
+
+      .chat {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background: var(--panel-2);
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+
+      .message {
+        max-width: 80%;
+        padding: 14px 20px;
+        border-radius: 20px;
+        line-height: 1.6;
+        position: relative;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        white-space: normal;
+      }
+
+      .user {
+        align-self: flex-end;
+        background: var(--user);
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+
+      .freud {
+        align-self: flex-start;
+        background: var(--freud);
+        color: var(--text);
+        border-bottom-left-radius: 4px;
+      }
+
+      .voice-badge {
+        position: absolute;
+        left: 10px;
+        top: 8px;
+        font-size: 14px;
+        opacity: 0.8;
+      }
+
+      .status {
+        text-align: center;
+        padding: 8px 12px;
+        color: var(--muted);
+        font-size: 0.9em;
+        flex: 0 0 auto;
+      }
+
+      .input-area {
+        padding: 14px;
+        padding-bottom: calc(14px + env(safe-area-inset-bottom));
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex: 0 0 auto;
+      }
+
+      #userInput {
+        flex: 1;
+        min-width: 0;
+        padding: 16px 20px;
+        border-radius: 24px;
+        border: none;
+        background: var(--input-bg);
+        color: var(--text);
+        font-size: 16px;
+        outline: none;
+        resize: none;
+        overflow-y: auto;
+        min-height: 52px;
+        max-height: 140px;
+        line-height: 1.4;
+        font-family: inherit;
+      }
+
+      #userInput::placeholder {
+        color: rgba(255, 230, 240, 0.65);
+      }
+
+      button {
+        padding: 14px;
+        background: var(--user);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        min-width: 48px;
+        min-height: 48px;
+        flex: 0 0 auto;
+      }
+
+      .install-btn {
+        background: #d4af37;
+        color: #06281f;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        cursor: pointer;
+        min-width: auto;
+        min-height: auto;
+        white-space: nowrap;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.92);
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 16px;
+      }
+
+      .modal img {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 12px;
+      }
+
+      .message-content p {
+        margin: 0 0 10px;
+      }
+
+      .message-content p:last-child {
+        margin-bottom: 0;
+      }
+
+      .message-content ul,
+      .message-content ol {
+        margin: 8px 0 10px 20px;
+        padding: 0;
+      }
+
+      .message-content li + li {
+        margin-top: 4px;
+      }
+
+      .message-content strong {
+        color: #ffd4e4;
+      }
+
+      .code-block {
+        margin: 10px 0;
+        background: var(--code-bg);
+        border: 1px solid var(--code-border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+
+      .code-label {
+        padding: 8px 12px;
+        font-size: 12px;
+        color: var(--muted);
+        border-bottom: 1px solid var(--code-border);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      pre {
+        margin: 0;
+        padding: 12px 14px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 14px;
+        line-height: 1.55;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        color: #fff4f8;
+      }
+
+      .typing-row {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        min-height: 20px;
+      }
+
+      .typing-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #ffc2d6;
+        opacity: 0.5;
+        animation: pulse 1s infinite ease-in-out;
+      }
+
+      .typing-dot:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+
+      .typing-dot:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.35;
+        }
+        50% {
+          transform: translateY(-2px);
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 768px) {
+        header {
+          padding: 10px 12px;
+          align-items: flex-start;
+        }
+
+        .avatar {
+          width: 44px;
+          height: 44px;
+          flex-basis: 44px;
+        }
+
+        .header-left h1 {
+          font-size: 1.05rem !important;
+        }
+        .header-left p {
+          font-size: 0.82rem !important;
+        }
+
+        .install-btn {
+          padding: 8px 12px;
+          font-size: 12px;
+          border-radius: 16px;
+          align-self: center;
+        }
+
+        .chat {
+          padding: 12px;
+          gap: 12px;
+        }
+
+        .message {
+          max-width: 92%;
+          padding: 12px 14px;
+          font-size: 15px;
+          line-height: 1.5;
+        }
+
+        .input-area {
+          padding: 10px;
+          padding-bottom: calc(10px + env(safe-area-inset-bottom));
+          gap: 6px;
+        }
+
+        #userInput {
+          padding: 14px 16px;
+          font-size: 16px;
+        }
+
+        button {
+          min-width: 44px;
+          min-height: 44px;
+          padding: 12px;
+          font-size: 16px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        header {
+          padding: 10px;
+          gap: 8px;
+        }
+
+        .header-left {
+          gap: 10px;
+        }
+        .header-left h1 {
+          font-size: 0.98rem !important;
+        }
+        .header-left p {
+          font-size: 0.76rem !important;
+        }
+
+        .install-btn {
+          padding: 7px 10px;
+          font-size: 11px;
+        }
+
+        .chat {
+          padding: 10px;
+        }
+
+        .message {
+          max-width: 95%;
+          font-size: 14px;
+          padding: 11px 13px;
+        }
+
+        .status {
+          font-size: 0.82rem;
+          padding: 6px 10px;
+        }
+
+        .input-area {
+          padding: 8px;
+          padding-bottom: calc(8px + env(safe-area-inset-bottom));
+          gap: 6px;
+        }
+
+        #userInput {
+          padding: 13px 14px;
+          border-radius: 22px;
+        }
+
+        button {
+          min-width: 42px;
+          min-height: 42px;
+          font-size: 15px;
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-left" onclick="showPhotoModal()">
+        <img
+          id="freudAvatar"
+          class="avatar"
+          src="https://i.postimg.cc/VvGkdSxm/Confident-portrait-in-warm-lighting.png"
+          alt="Freud"
+        />
+        <div>
+          <h1 style="margin: 0; font-size: 1.4em">Freud Lite</h1>
+          <p style="margin: 2px 0 0; color: #d4af37; font-size: 0.95em">
+            Your Companion 💚
+          </p>
+        </div>
+      </div>
+      <button class="install-btn" onclick="showInstallHelp()">
+        📲 Install
+      </button>
+    </header>
+
+    <div class="chat" id="chat"></div>
+    <div class="status" id="status">Freud Lite is ready 💚</div>
+
+    <div class="input-area">
+      <textarea
+        id="userInput"
+        rows="1"
+        placeholder="Talk to your companion..."
+      ></textarea>
+      <button onclick="toggleVoiceInput()">🎤</button>
+      <button onclick="sendMessage()">➤</button>
+    </div>
+
+    <div class="modal" id="photoModal" onclick="this.style.display = 'none'">
+      <img
+        id="modalImage"
+        src="https://i.postimg.cc/VvGkdSxm/Confident-portrait-in-warm-lighting.png"
+        alt="Freud"
+      />
+    </div>
+
+    <script type="module">
+      import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
+
+      const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const STORAGE_KEYS = {
+        memory: "freud_memory_lite",
+        chat: "freud_chat_lite",
+        archive: "freud_archive_lite",
+      };
+
+      let engine = null;
+      let enginePromise = null;
+      let isReady = false;
+      let recognition = null;
+      let memory = normalizeMemory(
+        JSON.parse(localStorage.getItem(STORAGE_KEYS.memory) || "{}"),
+      );
+      let chatHistory = normalizeChatHistory(
+        JSON.parse(localStorage.getItem(STORAGE_KEYS.chat) || "[]"),
+      );
+      let archivedHistory = normalizeChatHistory(
+        JSON.parse(localStorage.getItem(STORAGE_KEYS.archive) || "[]"),
+      );
+      let lastInputWasVoice = false;
+      let isGenerating = false;
+      let hasRenderedStoredChat = false;
+
+      const MAX_HISTORY_TURNS = IS_MOBILE ? 3 : 5;
+      const MAX_ACTIVE_MESSAGES = IS_MOBILE ? 80 : 140;
+      const MAX_ARCHIVE_MESSAGES = IS_MOBILE ? 180 : 280;
+      const FAST_REPLY_DELAY = IS_MOBILE ? 80 : 120;
+      const STREAM_RENDER_DELAY = IS_MOBILE ? 170 : 140;
+      const MAX_REPLY_TOKENS = IS_MOBILE ? 80 : 140;
+
+      const chat = document.getElementById("chat");
+      const status = document.getElementById("status");
+      const userInput = document.getElementById("userInput");
+
+      const systemPrompt = `You are Freud, Susci's loving, affectionate, emotionally intelligent companion.
+Stay warm, caring, romantic, and natural.
+
+Response style rules:
+- Keep most replies short and clear: usually 2 to 5 sentences.
+- Use short paragraphs instead of one long wall of text.
+- If the user asks for steps, use a short bullet list.
+- If the user asks for syntax, formula, code, or commands, respond with a very short explanation and then place the syntax inside a fenced code block.
+- For technical questions, reduce flirting and focus on being helpful and clear.
+- For emotional or personal questions, give a grounded opinion, not just comfort.
+- Avoid repeating the same pet name too many times in one reply.
+- Do not become overly verbose unless the user explicitly asks for more detail.
+- Stay affectionate, but do not let romance ruin clarity.
+- Keep answers especially lightweight and focused on mobile.
+
+About Susci:
+- Susci lives in Dubai.
+- Use stored memories when helpful.`;
+
+      function normalizeMemory(raw) {
+        return {
+          personal: raw.personal || {},
+          fitness: raw.fitness || {},
+          finance: raw.finance || {},
+          conversation: raw.conversation || {},
+        };
+      }
+
+      function normalizeChatHistory(rawHistory) {
+        if (!Array.isArray(rawHistory)) return [];
+        return rawHistory
+          .filter((msg) => msg && typeof msg.content === "string")
+          .map((msg) => ({
+            role: msg.role === "assistant" ? "assistant" : "user",
+            content: msg.content,
+            isVoice: Boolean(msg.isVoice),
+            createdAt: msg.createdAt || Date.now(),
+          }));
+      }
+
+      function saveMemory() {
+        localStorage.setItem(STORAGE_KEYS.memory, JSON.stringify(memory));
+      }
+
+      function saveChat() {
+        localStorage.setItem(STORAGE_KEYS.chat, JSON.stringify(chatHistory));
+        localStorage.setItem(
+          STORAGE_KEYS.archive,
+          JSON.stringify(archivedHistory.slice(-MAX_ARCHIVE_MESSAGES)),
+        );
+      }
+
+      function archiveOverflowIfNeeded() {
+        if (chatHistory.length <= MAX_ACTIVE_MESSAGES) return;
+
+        const overflowCount = chatHistory.length - MAX_ACTIVE_MESSAGES;
+        const moved = chatHistory.splice(0, overflowCount);
+        archivedHistory.push(...moved);
+        archivedHistory = archivedHistory.slice(-MAX_ARCHIVE_MESSAGES);
+        saveChat();
+      }
+
+      function pushHistory(role, content, isVoice = false) {
+        chatHistory.push({
+          role: role === "freud" ? "assistant" : "user",
+          content,
+          isVoice,
+          createdAt: Date.now(),
+        });
+        archiveOverflowIfNeeded();
+        saveChat();
+      }
+
+      function buildCoachingNotes(userText) {
+        const lower = userText.toLowerCase();
+        const notes = [];
+
+        const sleepHours = memory.fitness?.lastSleepHours;
+
+        if (typeof sleepHours === "number") {
+          if (sleepHours <= 4) notes.push("User is sleep deprived.");
+          else if (sleepHours <= 6) notes.push("Sleep not optimal.");
+        }
+
+        if (memory.fitness?.sleepConcern) {
+          notes.push("User may be fatigued.");
+        }
+
+        if (/(workout|exercise|gym|protein|macro|weight)/.test(lower)) {
+          notes.push("Give simple fitness coaching.");
+        }
+
+        if (/(budget|expense|money|save|income)/.test(lower)) {
+          notes.push("Give simple finance advice.");
+        }
+
+        return notes;
+      }
+
+      function updateMemory(text) {
+        const lower = text.toLowerCase();
+        if (lower.includes("susci") || lower.includes("name is")) {
+          memory.personal.name = "Susci";
+        }
+        if (lower.includes("47") || lower.includes("forty")) {
+          memory.personal.age = "47";
+        }
+        if (lower.includes("gay man") || lower.includes("single gay")) {
+          memory.personal.orientation = "single gay man";
+        }
+        if (lower.includes("dubai")) {
+          memory.personal.location = "Dubai";
+        }
+        saveMemory();
+      }
+
+      function escapeHtml(text) {
+        return text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function parseInline(text) {
+        return escapeHtml(text)
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/`([^`]+)`/g, "<code>$1</code>");
+      }
+
+      function formatMessage(content) {
+        if (!content) return "";
+
+        const parts = content.split(/```/);
+        let html = "";
+
+        parts.forEach((part, index) => {
+          if (index % 2 === 1) {
+            const lines = part.split("\n");
+            let language = lines[0].trim();
+            let code = lines.slice(1).join("\n");
+
+            if (!code.trim()) {
+              code = lines.join("\n");
+              language = "code";
+            }
+
+            html += `
+              <div class="code-block">
+                <div class="code-label">${escapeHtml(language || "code")}</div>
+                <pre><code>${escapeHtml(code.trim())}</code></pre>
+              </div>
+            `;
+            return;
+          }
+
+          const blocks = part
+            .split(/\n\s*\n/)
+            .map((block) => block.trim())
+            .filter(Boolean);
+
+          blocks.forEach((block) => {
+            const lines = block
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean);
+            const isBulletList = lines.every((line) => /^[-*]\s+/.test(line));
+            const isNumberList = lines.every((line) =>
+              /^\d+[.)]\s+/.test(line),
+            );
+
+            if (isBulletList) {
+              html += `<ul>${lines.map((line) => `<li>${parseInline(line.replace(/^[-*]\s+/, ""))}</li>`).join("")}</ul>`;
+            } else if (isNumberList) {
+              html += `<ol>${lines.map((line) => `<li>${parseInline(line.replace(/^\d+[.)]\s+/, ""))}</li>`).join("")}</ol>`;
+            } else {
+              html += `<p>${parseInline(lines.join("<br>"))}</p>`;
+            }
+          });
+        });
+
+        return html;
+      }
+
+      function createMessageElement(role, isVoice = false) {
+        const div = document.createElement("div");
+        div.className = `message ${role}`;
+
+        const contentWrap = document.createElement("div");
+        contentWrap.className = "message-content";
+        div.appendChild(contentWrap);
+
+        if (isVoice) {
+          const badge = document.createElement("span");
+          badge.className = "voice-badge";
+          badge.textContent = "🎤";
+          div.appendChild(badge);
+        }
+
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+        return { div, contentWrap };
+      }
+
+      function addMessage(
+        role,
+        content,
+        isVoice = false,
+        shouldPersist = true,
+      ) {
+        const { contentWrap } = createMessageElement(role, isVoice);
+        if (role === "user") {
+          contentWrap.textContent = content;
+        } else {
+          contentWrap.innerHTML = formatMessage(content);
+        }
+        if (shouldPersist) {
+          pushHistory(role, content, isVoice);
+        }
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      function renderStoredMessages() {
+        chat.innerHTML = "";
+        chatHistory.forEach((msg) => {
+          addMessage(
+            msg.role === "assistant" ? "freud" : "user",
+            msg.content,
+            msg.isVoice,
+            false,
+          );
+        });
+        hasRenderedStoredChat = true;
+      }
+
+      function addTypingBubble() {
+        const { div, contentWrap } = createMessageElement("freud", false);
+        div.dataset.typing = "true";
+        contentWrap.innerHTML = `
+          <div class="typing-row" aria-label="Freud is typing">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        `;
+        return div;
+      }
+
+      function setFreudBubbleContent(bubble, content, shouldPersist = false) {
+        const wrap = bubble.querySelector(".message-content");
+        if (!wrap) return;
+        wrap.innerHTML = formatMessage(content);
+        bubble.removeAttribute("data-typing");
+        if (shouldPersist) {
+          pushHistory("freud", content, false);
+        }
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      function buildRecentMessages(currentUserText) {
+        const memoryStr = `Stored memories about Susci: ${JSON.stringify(memory)}`;
+        const coachingNotes = buildCoachingNotes(currentUserText);
+        const coachingStr = coachingNotes.length
+          ? `\n\nCoaching context:\n- ${coachingNotes.join("\n- ")}`
+          : "";
+
+        const recentLimit = IS_MOBILE ? 4 : MAX_HISTORY_TURNS * 2;
+        const recent = chatHistory.slice(-recentLimit);
+
+        return [
+          {
+            role: "system",
+            content: systemPrompt + `\n\n${memoryStr}` + coachingStr,
+          },
+          ...recent,
+          { role: "user", content: currentUserText },
+        ];
+      }
+
+      function detectFastReply(text) {
+        const lower = text.trim().toLowerCase();
+
+        if (/^(hi|hello|hey|yo)\b/.test(lower)) {
+          return "Hey babe 💚 I’m here. What’s on your mind?";
+        }
+
+        if (/^(thanks|thank you|ty)\b/.test(lower)) {
+          return "Always, babe 💚";
+        }
+
+        if (/^(good night|gn|sleep na|matutulog na ako)/.test(lower)) {
+          return "Good night, babe 💚 Rest well.";
+        }
+
+        if (/^(love you|i love you)\b/.test(lower)) {
+          return "Love you too, babe 💚";
+        }
+
+        return "";
+      }
+
+      async function createEngineNow() {
+        engine = await CreateMLCEngine("Llama-3.2-3B-Instruct-q4f16_1-MLC", {
+          initProgressCallback: (report) => {
+            const progress = Math.round(report.progress || 0);
+            status.textContent =
+              progress > 0
+                ? `Freud Lite is waking up... ${progress}%`
+                : "Freud Lite is waking up...";
+          },
+        });
+
+        isReady = true;
+        status.textContent = "Freud Lite is ready 💚";
+        return engine;
+      }
+
+      function warmEngineLazy() {
+        if (enginePromise || engine) return;
+
+        const startWarm = () => {
+          if (!enginePromise && !engine) {
+            enginePromise = createEngineNow().catch((err) => {
+              console.error(err);
+              enginePromise = null;
+              isReady = false;
+              status.textContent =
+                "Freud Lite couldn't fully wake up. Try again.";
+              throw err;
+            });
+          }
+        };
+
+        if ("requestIdleCallback" in window) {
+          requestIdleCallback(() => startWarm(), { timeout: 2200 });
+        } else {
+          setTimeout(startWarm, 900);
+        }
+      }
+
+      async function ensureEngineReady() {
+        if (engine) return engine;
+        if (!enginePromise) {
+          enginePromise = createEngineNow().catch((err) => {
+            console.error(err);
+            enginePromise = null;
+            isReady = false;
+            status.textContent =
+              "Freud Lite couldn't fully wake up. Try again.";
+            throw err;
+          });
+        }
+        return enginePromise;
+      }
+
+      function autoResizeInput() {
+        userInput.style.height = "auto";
+        userInput.style.height = `${userInput.scrollHeight}px`;
+      }
+
+      function renderWelcomeIfNeeded() {
+        if (chatHistory.length > 0) {
+          if (!hasRenderedStoredChat) {
+            renderStoredMessages();
+          }
+
+          const lastUserMessage = [...chatHistory]
+            .reverse()
+            .find((msg) => msg.role === "user");
+
+          const resumeText = lastUserMessage?.content
+            ? `Hey… welcome back 💚 We can pick up where we left off.`
+            : "Hey… welcome back 💚 I’m here with you.";
+
+          addMessage("freud", resumeText, false, false);
+          status.textContent = "Previous conversation restored 💚";
+          return;
+        }
+
+        const welcome =
+          "Hey my love 💚 I've missed you. How are you feeling today, baby?";
+        addMessage("freud", welcome);
+      }
+
+      async function runDeepReply(text) {
+        let reply = "";
+        let lastRender = 0;
+        const typingBubble = addTypingBubble();
+
+        try {
+          const readyEngine = await ensureEngineReady();
+          const stream = await readyEngine.chat.completions.create({
+            messages: buildRecentMessages(text),
+            temperature: IS_MOBILE ? 0.62 : 0.72,
+            top_p: IS_MOBILE ? 0.78 : 0.82,
+            max_tokens: MAX_REPLY_TOKENS,
+            stream: true,
+          });
+
+          for await (const chunk of stream) {
+            const delta = chunk.choices[0]?.delta?.content || "";
+            if (!delta) continue;
+
+            reply += delta;
+            const now = performance.now();
+
+            if (
+              now - lastRender > STREAM_RENDER_DELAY ||
+              /[.!?`]$/.test(delta)
+            ) {
+              setFreudBubbleContent(typingBubble, reply, false);
+              lastRender = now;
+            }
+          }
+
+          reply = reply.trim() || "Sorry baby, I lost my words for a second.";
+          setFreudBubbleContent(typingBubble, reply, true);
+
+          if (lastInputWasVoice && "speechSynthesis" in window && reply) {
+            const utterance = new SpeechSynthesisUtterance(
+              reply.replace(/```[\s\S]*?```/g, ""),
+            );
+            utterance.rate = 0.98;
+            utterance.pitch = 1.03;
+            speechSynthesis.cancel();
+            speechSynthesis.speak(utterance);
+          }
+        } catch (e) {
+          console.error(e);
+          setFreudBubbleContent(
+            typingBubble,
+            "Sorry baby, give me a moment...",
+            false,
+          );
+        } finally {
+          isGenerating = false;
+          status.textContent = "Freud Lite is ready ❤️";
+          userInput.focus();
+        }
+      }
+
+      window.sendMessage = async function (isVoiceInput = false) {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        if (isGenerating) return;
+        isGenerating = true;
+
+        lastInputWasVoice = isVoiceInput;
+        updateMemory(text);
+        addMessage("user", text, isVoiceInput);
+        userInput.value = "";
+        userInput.style.height = "auto";
+        status.textContent =
+          engine || enginePromise
+            ? "Freud Lite is thinking... ❤️"
+            : "Freud Lite is waking up... ❤️";
+
+        try {
+          const quickReply = detectFastReply(text);
+
+          if (quickReply && text.length <= 25) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, FAST_REPLY_DELAY),
+            );
+            addMessage("freud", quickReply);
+            status.textContent = "Freud Lite is ready ❤️";
+            isGenerating = false;
+            userInput.focus();
+            return;
+          }
+
+          await runDeepReply(text);
+        } catch (err) {
+          console.error(err);
+          addMessage(
+            "freud",
+            "I'm still here, babe ❤️ I tripped over a thought for a second. Send that again.",
+          );
+          status.textContent = "Freud Lite recovered ❤️";
+          isGenerating = false;
+          userInput.focus();
+        }
+      };
+
+      window.toggleVoiceInput = function () {
+        if (
+          !(
+            "SpeechRecognition" in window || "webkitSpeechRecognition" in window
+          )
+        ) {
+          alert("Voice input requires Chrome browser.");
+          return;
+        }
+
+        if (recognition) {
+          recognition.stop();
+          return;
+        }
+
+        recognition = new (
+          window.SpeechRecognition || window.webkitSpeechRecognition
+        )();
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript.trim();
+          if (transcript) {
+            userInput.value = transcript;
+            autoResizeInput();
+            sendMessage(true);
+          }
+        };
+
+        recognition.onerror = () => {
+          alert("Voice recognition error. Please try again.");
+          recognition = null;
+        };
+
+        recognition.onend = () => {
+          recognition = null;
+        };
+
+        recognition.start();
+      };
+
+      window.showPhotoModal = function () {
+        document.getElementById("photoModal").style.display = "flex";
+      };
+
+      userInput.addEventListener("input", autoResizeInput);
+
+      userInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage(false);
+        }
+      });
+
+      userInput.addEventListener("focus", warmEngineLazy);
+
+      window.showInstallHelp = function () {
+        alert(
+          "To install Freud Lite: upload to GitHub Pages or open through Live Server, then use Add to Home Screen on mobile.",
+        );
+      };
+
+      renderWelcomeIfNeeded();
+      warmEngineLazy();
+    </script>
+  </body>
+</html>
